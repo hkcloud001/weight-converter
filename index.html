@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>重量單位轉換器</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 1rem;
+      background: #f5f5f5;
+      color: #333;
+      max-width: 480px;
+      margin: auto;
+    }
+    h1 {
+      font-size: 1.5rem;
+      text-align: center;
+    }
+    select, input {
+      width: 100%;
+      padding: 0.5rem;
+      margin: 0.5rem 0;
+      font-size: 1.2rem;
+    }
+    .output {
+      background: white;
+      padding: 1rem;
+      margin-top: 1rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+    }
+    .output div {
+      margin-bottom: 0.5rem;
+    }
+    #qrcode {
+      margin-top: 1rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>重量單位轉換器</h1>
+  <input type="number" id="inputValue" placeholder="輸入數值" />
+  <select id="inputUnit">
+    <option value="cjin">市斤</option>
+    <option value="cliang">市兩</option>
+    <option value="hjin">港斤</option>
+    <option value="hliang">港兩</option>
+    <option value="lb">磅</option>
+    <option value="g">公克</option>
+  </select>
+  <div class="output" id="result"></div>
+  <div id="qrcode"></div>
+
+  <script src="qrcode.min.js"></script>
+  <script>
+    const conversions = {
+      cjin: 500,
+      cliang: 50,
+      hjin: 605,
+      hliang: 37.8,
+      lb: 453.6,
+      g: 1
+    };
+
+    const displayNames = {
+      cjin: "市斤",
+      cliang: "市兩",
+      hjin: "港斤",
+      hliang: "港兩",
+      lb: "磅",
+      g: "公克"
+    };
+
+    const input = document.getElementById("inputValue");
+    const unit = document.getElementById("inputUnit");
+    const result = document.getElementById("result");
+
+    function convert() {
+      const value = parseFloat(input.value);
+      const fromUnit = unit.value;
+      if (isNaN(value)) return;
+
+      const gram = value * conversions[fromUnit];
+      result.innerHTML = "";
+      for (let key in conversions) {
+        const converted = gram / conversions[key];
+        result.innerHTML += `<div><strong>${displayNames[key]}</strong>：${converted.toFixed(4)}</div>`;
+      }
+
+      // 更新 QR Code
+      const url = new URL(window.location.href);
+      url.searchParams.set("value", input.value);
+      url.searchParams.set("unit", unit.value);
+      document.getElementById("qrcode").innerHTML = "";
+      new QRCode(document.getElementById("qrcode"), url.toString());
+    }
+
+    input.addEventListener("input", convert);
+    unit.addEventListener("change", convert);
+
+    // 預設參數載入
+    window.onload = () => {
+      const params = new URLSearchParams(window.location.search);
+      const value = params.get("value");
+      const unitParam = params.get("unit");
+      if (value && unitParam && conversions[unitParam]) {
+        input.value = value;
+        unit.value = unitParam;
+        convert();
+      }
+    };
+  </script>
+</body>
+</html>
